@@ -1,0 +1,20 @@
+import { Schema, Model, model } from "mongoose";
+import { I{{pascalCase name}}Document } from "./I{{pascalCase name}}Document";
+const ObjectId = Schema.Types.ObjectId;
+
+export interface I{{pascalCase name}} extends I{{pascalCase name}}Document { }
+export interface I{{pascalCase name}}Model extends Model<I{{pascalCase name}}> { }
+
+/**
+ * {{titleCase name}} Schema
+ */
+const {{camelCase name}}Schema = new Schema<I{{pascalCase name}}>({
+    //id: { type: ObjectId, default: undefined, ref: "User", required: true },
+}, {
+    timestamps: true,
+    autoCreate: true,
+    autoIndex: true
+});
+
+export const {{pascalCase name}}: I{{pascalCase name}}Model = model<I{{pascalCase name}}, I{{pascalCase name}}Model>('{{pascalCase name}}', {{camelCase name}}Schema, '{{camelCase name}}');
+export default {{pascalCase name}};
