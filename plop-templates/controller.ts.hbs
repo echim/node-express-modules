@@ -1,0 +1,151 @@
+import { NextFunction, Request, Response } from "express";
+import log from "../../utils/log-wrapper";
+import {{pascalCase name}}, { I{{pascalCase name}} } from "./{{dashCase name}}-model";
+import { Result, validationResult } from 'express-validator';
+import { RequestUser } from "../user/IUserDocument";
+
+class {{pascalCase name}}Controller {
+
+    private async _getAll{{pascalCase name}}s() {
+        return {{pascalCase name}}
+            .find({
+
+            })
+            .select({
+                property: true,
+            })
+            .populate(
+                [
+                    {
+                        path: "property",
+                        select: {
+                            password: false,
+                            __v: false,
+                            updatedAt: false,
+                            id: false,
+                            email: false,
+                            createdAt: false,
+                            isAdmin: false,
+                            active: false,
+
+                            emailNotifications: false,
+                            pushNotifications: false,
+                            webAuthns: false,
+                            webPushNotificationsJson: false
+                        }
+                    }
+                ]
+            )
+            .sort({
+                property: 1
+            })
+            .exec()
+            .then(({{camelCase name}}: Array<I{{pascalCase name}}>) => {
+                return {{camelCase name}};
+            })
+    }
+
+    public async getAll{{pascalCase name}}s(req: Request, res: Response, next: NextFunction) {
+        log.info("{{constantCase name}}: Get all req received");
+        try {
+            const validationResults: Result = validationResult(req);
+            if (!validationResults.isEmpty()) {
+                res.status(400).send(validationResults.mapped());
+                return;
+            }
+            const {{camelCase name}} = await this._getAll{{pascalCase name}}s();
+            if (!{{camelCase name}}) {
+                res.status(404).send({ message: "{{constantCase name}}: Not found" });
+            }
+            res.send({{camelCase name}});
+        } catch (err: any) {
+            log.error(err.message);
+            res.status(500).send({ message: "{{constantCase name}}: Something went wrong on getting all" });
+        }
+    }
+
+    private async _createNew{{pascalCase name}}(
+        userId: string,
+        property: string
+    ) {
+        const doc = new {{pascalCase name}}({
+            property: property,
+        });
+        await doc.save();
+        return doc;
+    }
+
+    public async createNew{{pascalCase name}}(req: Request, res: Response, next: NextFunction) {
+        log.info("{{constantCase name}}: Create new req received");
+        try {
+            const validationResults: Result = validationResult(req);
+            if (!validationResults.isEmpty()) {
+                res.status(400).send(validationResults.mapped());
+                return;
+            }
+
+            const loggedInUser = new RequestUser(req.user);
+            if (loggedInUser._id) {
+                let property = req.body.property;
+
+                if (property) {
+                    this._createNew{{pascalCase name}}(
+                        loggedInUser._id,
+                        property
+                    ).then(() => {
+                        res.send();
+                    }, (err) => {
+                        console.log(err);
+                        res.status(500).send({ message: "{{constantCase name}}: Unable to create new" });
+                    });
+                }
+                else {
+                    res.status(500).send({ message: "{{constantCase name}}: Unable to create new, invalid props" });
+                }
+            }
+            else {
+                res.status(403).send({ message: "{{constantCase name}}: Not enough permissions" });
+            }
+        } catch (err: any) {
+            log.error(err);
+            res.status(500).send({ message: "{{constantCase name}}: Something went wrong on creating new" });
+        }
+    }
+
+    private async _delete{{pascalCase name}}ById(id: string) {
+        return {{pascalCase name}}.findOneAndDelete({ _id: id });
+    }
+
+    public async delete{{pascalCase name}}ById(req: Request, res: Response, next: NextFunction) {
+        log.info("{{constantCase name}}: Delete new req received");
+        try {
+            const validationResults: Result = validationResult(req);
+            if (!validationResults.isEmpty()) {
+                res.status(400).send(validationResults.mapped());
+                return;
+            }
+
+            const {{camelCase name}}Id = req.body.resourceId;
+            const loggedInUser = new RequestUser(req.user);
+
+            let toDelete = await {{pascalCase name}}.findOne({ _id: {{camelCase name}}Id })
+
+            if (toDelete) {
+                if (loggedInUser._id.toString() === toDelete.owner.toString() || loggedInUser.isAdmin) {
+                    await this._delete{{pascalCase name}}ById({{camelCase name}}Id);
+                    res.send();
+                }
+                else {
+                    res.status(401).send({ message: "{{constantCase name}}: Delete only own resources" });
+                }
+            }
+            else {
+                res.status(404).send({ message: "{{constantCase name}}: Not found" });
+            }
+        } catch (err) {
+            res.status(500).send({ message: "{{constantCase name}}: Something went wrong on deleting" });
+        }
+    }
+}
+
+export default {{pascalCase name}}Controller;

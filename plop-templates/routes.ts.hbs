@@ -1,0 +1,64 @@
+import ModuleRoutes from '../../utils/moduleRoutes';
+import Route from '../../utils/route';
+import {{pascalCase name}}Controller from './{{dashCase name}}-controller';
+import { body, query } from 'express-validator';
+
+let allRoutes: Array<Route> = [];
+let controller: {{pascalCase name}}Controller = new {{pascalCase name}}Controller();
+
+// POST example
+// allRoutes.push(new Route(
+//     "POST",                                  - method
+//     "/create-new",                           - path 
+//     "route_key_here",                        - key
+//     true,                                    - authRequired
+//     controller.createNew.bind(controller),   - callback
+//     undefined,                               - validation
+//     undefined,                               - parameters
+//     undefined,                               - bodyParams
+//     ["role1", "role2"],                      - user roles
+//     true                                     - uploadsFiles?
+// ));
+
+// Get all
+allRoutes.push(new Route(
+    "GET",
+    "/get-all",
+    "{{snakeCase name}}_get_all",
+    true,
+    controller.getAll{{pascalCase name}}s.bind(controller)
+));
+
+// Create new
+allRoutes.push(new Route(
+    "POST",
+    "/create-new",
+    "{{snakeCase name}}_create_new",
+    true,
+    controller.createNew{{pascalCase name}}.bind(controller),
+    undefined,
+    undefined,
+    undefined,
+    ["allowed-role"],
+    true
+));
+
+// Delete 
+allRoutes.push(new Route(
+    "POST",
+    "/delete",
+    "{{snakeCase name}}_delete",
+    true,
+    controller.delete{{pascalCase name}}ById.bind(controller),
+    [
+        body("resourceId").notEmpty().isMongoId(),
+    ],
+    undefined,
+    [
+        { resourceId: "String" }
+    ]
+));
+
+// Export all {{pascalCase name}} routes
+let routes: ModuleRoutes = new ModuleRoutes("/{{dashCase name}}", allRoutes);
+export { routes }; 
